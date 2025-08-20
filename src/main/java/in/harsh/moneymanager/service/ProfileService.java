@@ -4,6 +4,8 @@ import in.harsh.moneymanager.dto.ProfileDTO;
 import in.harsh.moneymanager.entity.ProfileEntity;
 import in.harsh.moneymanager.repositry.ProfileRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -15,10 +17,14 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final EmailService emailService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public ProfileDTO registerProfile(ProfileDTO profileDTO) {
 
         ProfileEntity newProfile = toEntity(profileDTO);
         newProfile.setActivationToken(UUID.randomUUID().toString());
+
         newProfile = profileRepository.save(newProfile);
 
         //Send activation email
@@ -35,7 +41,7 @@ public class ProfileService {
                 id(profileDTO.getId()).
                 fullName(profileDTO.getFullName()).
                 email(profileDTO.getEmail()).
-                password(profileDTO.getPassword()).
+                password(passwordEncoder.encode(profileDTO.getPassword())).
                 profileImageUrl(profileDTO.getProfileImageUrl()).
                 createdAt(profileDTO.getCreatedAt()).
                 updatedAt(profileDTO.getUpdatedAt()).
