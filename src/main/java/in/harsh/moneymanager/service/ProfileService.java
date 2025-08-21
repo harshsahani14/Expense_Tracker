@@ -1,13 +1,19 @@
 package in.harsh.moneymanager.service;
 
+import in.harsh.moneymanager.dto.AuthDTO;
 import in.harsh.moneymanager.dto.ProfileDTO;
 import in.harsh.moneymanager.entity.ProfileEntity;
 import in.harsh.moneymanager.repositry.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -66,5 +72,39 @@ public class ProfileService {
                     profileRepository.save(profile);
                     return true;
                 }).orElse(false);
+    }
+
+    public boolean isAccountActive(String email){
+        return profileRepository.findByEmail(email).
+                map(profileEntity -> profileEntity.getIsActive()).orElse(false);
+    }
+
+    public ProfileEntity getCurrentProfile(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        return profileRepository.findByEmail(authentication.getName()).
+                orElseThrow(()-> new UsernameNotFoundException("Profile not found with email"+authentication.getName()));
+
+
+    }
+
+    public ProfileDTO getPublicProfile(String email){
+
+        ProfileEntity currentUser = null;
+        if(email == null){
+            currentUser = getCurrentProfile();
+        }
+        else{
+            currentUser = profileRepository.findByEmail(email)
+                    .orElseThrow(()-> new UsernameNotFoundException("Profile not found with email"+email));
+        }
+
+        return toDTO(currentUser);
+
+    }
+
+    public Map<String, Object> authenticateAndGenerate(AuthDTO authDTO) {
+
+        return null;
     }
 }
