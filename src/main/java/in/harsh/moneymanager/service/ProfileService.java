@@ -8,9 +8,9 @@ import in.harsh.moneymanager.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +32,6 @@ public class ProfileService {
     @Autowired
     private final AuthenticationManager authenticationManager;
 
-
     private final JwtUtil jwtUtil;
 
     public ProfileDTO registerProfile(ProfileDTO profileDTO) {
@@ -44,7 +43,7 @@ public class ProfileService {
 
         //Send activation email
         String activationLink = "http://localhost:8080/api/v1.0/activate?token=" + newProfile.getActivationToken();
-        String subject = "Activate your money manager acount";
+        String subject = "Activate your money manager account";
         String body = "Click on the following link to activate your money manager: " + activationLink;
 
         emailService.sendEmail(newProfile.getEmail(), subject, body);
@@ -118,15 +117,18 @@ public class ProfileService {
 
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authDTO.getEmail(), authDTO.getPassword()));
 
+            System.out.println("Authentication Successful");
             String token = jwtUtil.generateToken(authDTO.getEmail());
+
+            System.out.println("Token Generated");
             return Map.of(
-                    "token","JWT token",
+                    "token",token,
                     "user",getPublicProfile(authDTO.getEmail())
             );
 
         }
         catch (Exception e){
-            throw new UsernameNotFoundException("Invalid email or password");
+            throw new BadCredentialsException("Invalid email or password");
         }
     }
 }

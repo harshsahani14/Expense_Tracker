@@ -2,6 +2,7 @@ package in.harsh.moneymanager.util;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,15 +14,12 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     public String secret;
 
-    @Value("${jwt.expiration}")
-    public long expiration;
-
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)  // subject = email
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration ))
-                .signWith(SignatureAlgorithm.HS256, secret )
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10 ))
+                .signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
                 .compact();
     }
 }
