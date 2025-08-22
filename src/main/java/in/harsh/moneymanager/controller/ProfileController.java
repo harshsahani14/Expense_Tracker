@@ -47,7 +47,7 @@ public class ProfileController {
             if(!profileService.isAccountActive(authDTO.getEmail())) {
                 return  ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "Account Not Active"));
             }
-            Map<String,Object> response =  profileService.authenticateAndGenerate(authDTO);
+            Map<String,Object> response =  profileService.authenticateAndGenerateToken(authDTO);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));

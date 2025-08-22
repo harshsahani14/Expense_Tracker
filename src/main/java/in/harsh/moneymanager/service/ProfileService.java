@@ -4,8 +4,11 @@ import in.harsh.moneymanager.dto.AuthDTO;
 import in.harsh.moneymanager.dto.ProfileDTO;
 import in.harsh.moneymanager.entity.ProfileEntity;
 import in.harsh.moneymanager.repositry.ProfileRepository;
+import in.harsh.moneymanager.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +28,12 @@ public class ProfileService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private final AuthenticationManager authenticationManager;
+
+
+    private final JwtUtil jwtUtil;
 
     public ProfileDTO registerProfile(ProfileDTO profileDTO) {
 
@@ -103,8 +112,21 @@ public class ProfileService {
 
     }
 
-    public Map<String, Object> authenticateAndGenerate(AuthDTO authDTO) {
+    public Map<String, Object> authenticateAndGenerateToken(AuthDTO authDTO) {
 
-        return null;
+        try{
+
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authDTO.getEmail(), authDTO.getPassword()));
+
+            String token = jwtUtil.generateToken(authDTO.getEmail());
+            return Map.of(
+                    "token","JWT token",
+                    "user",getPublicProfile(authDTO.getEmail())
+            );
+
+        }
+        catch (Exception e){
+            throw new UsernameNotFoundException("Invalid email or password");
+        }
     }
 }
